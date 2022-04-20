@@ -55,12 +55,6 @@ function keyDownEventHandler(e)
     paddle.bottom = barPosY + barHeight;
 }
 
-function keyUpEventHandler() 
-{
-
-}
-
-
 function update() 
 {
     // 데이터 수정 (ex) 도형의 위치 이동

@@ -85,7 +85,7 @@ let letName = "wsj"; // 같은 scope안에서 중복선언 불가능
 console.log(letName); //wsj
 if (true)
 {
-    let letName = "sungjin2"; // 이 scope 안에서만 사용된다
+    letName = "sungjin2"; // 이 scope 안에서만 사용된다
     console.log(letName); // sungjin2
 
 }
