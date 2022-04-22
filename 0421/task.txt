@@ -1,0 +1,23 @@
+MovingBrick을 setBrick하고 drawBrick하면 될거시다~~~
+setBrick은 class로 해서 bricks와 movingBrick 공통으로 설정해주면 될거시다~~
+
+drawMovingBrick은 따로 만들어 줄것이다
+
+bricks[i][j]에서 i와 j를 참고해서 brick위치 등을 정하는데 class로 하면 어케 받아옴???
+
+class Brick {
+    constructor(left, top, right, bottom) {
+        this.left = left;
+        this.top = top;
+        this.right = right;
+        this.bottom = bottom;
+    }
+}
+
+class MovingBrick extends Brick {
+    movingAction() {
+        this.left++;
+    }
+}
+
+brick = new Brick(0,0,10,10) 이렇게하면 brick = {left:0, top: 0, right: 10, bottom:10}
