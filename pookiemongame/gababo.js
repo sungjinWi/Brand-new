@@ -29,12 +29,16 @@ const context = canvas.getContext("2d");
 let rsp = document.getElementById("rspGame")
 
 // 가위바위보 관련
-let userWeapon = "";
-let monWeaponRate = 2;
-let monWeapon = "";
+let userWeapon = 0;
+let monWeapon = 0;
 let buttons = [];
 buttons = [...(document.getElementsByClassName("Weapons"))] 
 // getElementsByClassName은 array가 아니다 => Array.from 또는 ...으로 배열로 바꾸기 가능
+
+// 지갑 및 HP
+let myWallet = 0;
+let hp = 3;
+
 
 // monster 관련
 let meetMon = false;
@@ -78,54 +82,31 @@ function meetRate()
 }
 
 // 가바보 게임 승패 결정
+// 바위 0 가위 1 보 2
 function isRspWin()
-{
+{   
+    console.log(isMoving)
     userWeapon = this.value;
     
-    monWeaponRate = Math.ceil(Math.random()*3);
-    switch(monWeaponRate) {
-        // case는 범위 설정 불가
+    monWeapon = Math.floor(Math.random()*3);
+    switch((userWeapon - monWeapon + 3) % 3){
+        case 0 : 
+            alert("비겼으니 retry");
+            return false;
         case 1 :
-            monWeapon = "bawi";
+            alert("lose");
+            hp --;
+            if(hp == 0){
+                location.reload();
+                alert("game over")
+            }
+            
             break;
         case 2 :
-            monWeapon = "gawi";
-            break;
-        case 3 :
-            monWeapon = "bo";
-            break;
+            alert("win");
+            myWallet += Math.floor(Math.random()*99)
     }
-    console.log(userWeapon);
-    console.log(monWeapon)
-    if(userWeapon == monWeapon) {
-        alert("비겼으니 retry")
-        return false;
-    }
-    switch (userWeapon) {
-        case "gawi" : 
-            if(monWeapon == "bo") {
-                alert("win");
-            }
-            else {
-                alert("lose");
-            }
-            break;
-        case "bawi" :
-            if(monWeapon == "gawi") {
-                alert("win");
-            }
-            else {
-                alert("lose");
-            }
-            break;
-        case "bo" :
-            if(monWeapon == "bawi") {
-                alert("win");
-            }
-            else {
-                alert("lose");
-            }
-    }
+    
     isMoving = true;
     
 }
@@ -167,7 +148,18 @@ function keyUpEventHandler()
 
 function update() 
 {
-    // 데이터 수정 (ex) 플레이어의 위치 이동
+    // 데이터 수정 
+    // 플레이어의 위치 이동, 지갑 및 hp update
+
+    document.getElementById("wallet").innerHTML = myWallet;
+    document.getElementById("hp").innerHTML = hp;
+
+    if(!isMoving) {
+        rsp.style.visibility = "visible";
+    }
+    else{
+        rsp.style.visibility = "hidden";
+    }
 
     // 게임 클리어 확인
     checkToWin();
