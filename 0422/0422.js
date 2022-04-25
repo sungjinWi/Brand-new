@@ -12,19 +12,22 @@
 
 // @@@@@@@@@ async await @@@@@@@@@@@@@@@
 
+async function setTimeoutPromise()
+
 async function asyncTimeoutCheckAdult(age, timeout) {
-    if (age >= 20) {
-        setTimeout(()=> {
-            console.log(`asyncTimeoutCheckAdult ${age}`)
-            return age;
-        }, timeout)
-    }
-    else throw new Error(age);
+    
+    console.log(`${age}. timeoutCheckAdult`);
+    await setTimeoutPromise(timeout);
+    console.log(`${age}. timeoutCheckAdult`);
+
+    console.log
 }
 
 // await : async 함수가 종료될 때까지 기다린다 / async 안에서만 사용 가능
 async function testAsyncAwaitFunc(){
+    
     await asyncTimeoutCheckAdult(30, 1000);
+    // console.log(test)
     // resolve가 먼저 다 되고 reject 수행
 
     const promiseCheckAdult = asyncCheckAdult(10);
