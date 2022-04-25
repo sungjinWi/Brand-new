@@ -1,3 +1,9 @@
+/*
+V2에서 할것
+1. 가위바위보 게임 만들기 
+2. 이동상태와 전투상태 구분할것 (키보드 이동)
+3. 몬스터 만날 확률
+*/
 
 class Tile {
     constructor(left, top, right, bottom, color) {
@@ -17,11 +23,16 @@ class Tile {
  
 }
 
-
 let canvas = document.getElementById("myCanvas");
-const context = canvas.getContext("2d"); 
+const context = canvas.getContext("2d");
 
+let rsp = document.getElementById("rspGame")
 
+// 가위바위보 관련
+let userRsp = "";
+let buttons = [];
+buttons = [...(document.getElementsByClassName("rspGame"))] 
+// getElementsByClassName은 array가 아니다 => Array.from 또는 ...으로 배열로 바꾸기 가능
 
 // player 관련
 const arcRadius = 15;
@@ -42,40 +53,54 @@ const tileColumn = 10;
 const tileRow = 10;
 let tiles; // 벽돌 전체
 
-
 // game start여부
 let startBool = false;
 
-
 // 키처리 함수 추가
+document.addEventListener("keydown", startKey);
 document.addEventListener("keydown", keyDownEventHandler);
 document.addEventListener("keyup", keyUpEventHandler);
-function keyDownEventHandler(e) 
-{   
+
+// 가위바위보 버튼 누를 시
+buttons.forEach((button)=> button.addEventListener("click",()=>{ // onclick 아니라 click
+    userRsp = button.value;
+    
+    console.log(userRsp);
+}))
+
+function startKey(e)
+{
     // 게임 시작 상태 아니면 시작
     if(e.key === " " && !startBool){
         startBool = true;
-        setInterval(update, 10)
+        setInterval(update, 10);
     }
-    else if(e.key === "ArrowRight" && arcPosX < canvas.width - arcRadius - tileWidth)
-    {
-        // 플레이어를 오른쪽으로 이동
-        arcPosX+= arcMvSpd;
-    }
-    else if(e.key === "ArrowLeft" && arcPosX - arcRadius - tileWidth > 0)
-    {
-        // 플레이어를 왼쪽으로 이동
-        arcPosX -= arcMvSpd;
-    }
-    else if(e.key === "ArrowUp" && arcPosY - arcRadius - tileHeight > 0)
-    {
-        arcPosY -= arcMvSpd;
-    }
-    else if(e.key === "ArrowDown" && arcPosY < canvas.width - arcRadius - tileHeight)
-    {
-        arcPosY += arcMvSpd;
-    }
+}
 
+function keyDownEventHandler(e) 
+{   
+   if(startBool)
+   {
+
+        if(e.key === "ArrowRight" && arcPosX < canvas.width - arcRadius - tileWidth)
+        {
+            // 플레이어를 오른쪽으로 이동
+            arcPosX+= arcMvSpd;
+        }
+        else if(e.key === "ArrowLeft" && arcPosX - arcRadius - tileWidth > 0)
+        {
+            // 플레이어를 왼쪽으로 이동
+            arcPosX -= arcMvSpd;
+        }
+        else if(e.key === "ArrowUp" && arcPosY - arcRadius - tileHeight > 0)
+        {
+            arcPosY -= arcMvSpd;
+        }
+        else if(e.key === "ArrowDown" && arcPosY < canvas.width - arcRadius - tileHeight)
+        {
+            arcPosY += arcMvSpd;
+        }
+   }
 }
 
 function keyUpEventHandler()
@@ -85,7 +110,7 @@ function keyUpEventHandler()
 
 function update() 
 {
-    // 데이터 수정 (ex) 도형의 위치 이동
+    // 데이터 수정 (ex) 플레이어의 위치 이동
 
     // 게임 클리어 확인
     checkToWin();
@@ -95,9 +120,7 @@ function update()
     player.top = arcPosY - arcRadius;
     player.bottom = arcPosY + arcRadius;
 
-
     // 충돌 확인
-
 
 }
 
@@ -153,7 +176,6 @@ function drawCanvas()
     context.closePath();
 }
 
-
 function drawTiles() 
 {
     context.beginPath();
@@ -177,7 +199,6 @@ function drawArc()
 
     context.closePath();
 }
-
 
 function drawExit()
 {
@@ -216,7 +237,6 @@ function setExit()
     "black"
     )
 }
-
 
 
 setTiles();
