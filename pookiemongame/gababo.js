@@ -1,14 +1,5 @@
 /*
-V2에서 할것
-1. 가위바위보 게임 만들기 012로 해서 뺸다음 나머지 케이스 나눠보기
-2. 이동상태와 전투상태 구분할것 (키보드 이동)
-3. 몬스터 만날 확률
 
-
-game clear할 때 monster 알림 먼저 뜨고 clear되는 경우 어떻게 해결할까
-update가 10마다 되기 때문에 arcPosX가 변하기 전에 판별하면 만나지 않은것으로 판정된다
-따라서 async await을 줘도 소용없고 강제로 timeout을 줘야할 것 같다
-timeout을 주니 clear나 monster alert가 두번씩 뜨고 있다
 */
 
 class Tile {
@@ -77,17 +68,33 @@ document.addEventListener("keyup", keyUpEventHandler);
 // 가위바위보 버튼 누를 시 // onclick 아니라 click
 buttons.forEach((button)=> button.addEventListener("click", isRspWin))
 
+// player position 변경
+function setPlayerPos()
+{
+    player.left = arcPosX - arcRadius;
+    player.right = arcPosX + arcRadius;
+    player.top = arcPosY - arcRadius;
+    player.bottom = arcPosY + arcRadius;
+}
+
 // 움직일 때마다 랜덤 확률
 // > TODO : 클리어할 때 몬스터를 만나지 않으려면 어떻게 할까?
 function meetRate() 
-{
+{   
+    setPlayerPos();
+    if(checkToWin()){
+        return false;
+    }
     meetMon = (Math.round(Math.random()*10)) < 2;
     
     if(meetMon) {
         isMoving = false;
         alert("met mon");
+        return true; //형식 맞춰주기
     };
 }
+
+
 
 // 가바보 게임 승패 결정
 // 바위 0 가위 1 보 2
@@ -169,12 +176,8 @@ function update()
     }
 
     // 게임 클리어 확인
-    checkToWin()
+    // checkToWin() -> meetRate에 조건으로 합쳐버림
 
-    player.left = arcPosX - arcRadius;
-    player.right = arcPosX + arcRadius;
-    player.top = arcPosY - arcRadius;
-    player.bottom = arcPosY + arcRadius;
 }
 
 function checkToWin()
@@ -182,7 +185,9 @@ function checkToWin()
         if(isCollisionRectToRect(player, exit)){
             location.reload();
             alert("clear");
+            return true
         }
+        return false
     }
 function isCollisionRectToRect(rectA,rectB)
 {
@@ -281,4 +286,4 @@ function setExit()
 setTiles();
 setExit();
 setInterval(draw, 10);
-setInterval(update, 10)
+setInterval(update, 10);

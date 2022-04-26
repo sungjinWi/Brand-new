@@ -1,0 +1,21 @@
+V2에서 할것
+1. 가위바위보 게임 만들기 012로 해서 뺸다음 나머지 케이스 나눠보기
+2. 이동상태와 전투상태 구분할것 (키보드 이동)
+3. 몬스터 만날 확률
+
+
+해결해야할 것
+
+game clear할 때 monster 알림 먼저 뜨고 clear되는 경우 어떻게 해결할까
+update가 10마다 되기 때문에 arcPosX가 변하기 전에 판별하면 만나지 않은것으로 판정된다
+    ->따라서 async await을 줘도 소용없고 강제로 timeout을 줘야할 것 같다
+        > timeout을 주니 clear나 monster alert가 두번씩 뜨고 있다 XXXXXX
+
+    ->화살표를 누를 때 몬스터 사건을 만나는 이벤트를 줬는데 update에 줘야 될 것 같음
+        > update는 10미리 세컨드마다 일어나는데 이렇게 하면 지속적으로 alert가 뜰것이다 XXXXXX
+            -> meetRate함수 자체를 바꿔야할 것 같다
+    
+    ->확실하게 이동이 일어난 이후에 monster alert를 띄우는 방법을 생각해야한다
+        1. 게임을 시작할 때 타일마다 랜덤으로 할까
+
+        >교수님 solution : 방향키 누를 때 left right top bottom도 업데이트 하면 간단히 해결!
