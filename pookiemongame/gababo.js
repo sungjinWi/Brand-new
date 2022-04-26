@@ -3,6 +3,12 @@ V2에서 할것
 1. 가위바위보 게임 만들기 012로 해서 뺸다음 나머지 케이스 나눠보기
 2. 이동상태와 전투상태 구분할것 (키보드 이동)
 3. 몬스터 만날 확률
+
+
+game clear할 때 monster 알림 먼저 뜨고 clear되는 경우 어떻게 해결할까
+update가 10마다 되기 때문에 arcPosX가 변하기 전에 판별하면 만나지 않은것으로 판정된다
+따라서 async await을 줘도 소용없고 강제로 timeout을 줘야할 것 같다
+timeout을 주니 clear나 monster alert가 두번씩 뜨고 있다
 */
 
 class Tile {
@@ -37,7 +43,7 @@ buttons = [...(document.getElementsByClassName("Weapons"))]
 
 // 지갑 및 HP
 let myWallet = 0;
-let hp = 3;
+let hp = 5;
 
 
 // monster 관련
@@ -59,6 +65,7 @@ const tileHeight = 39;
 const tileColumn = 10;
 const tileRow = 10;
 let tiles; // 벽돌 전체
+let exit;
 
 // game start여부
 let isMoving = true;
@@ -71,6 +78,7 @@ document.addEventListener("keyup", keyUpEventHandler);
 buttons.forEach((button)=> button.addEventListener("click", isRspWin))
 
 // 움직일 때마다 랜덤 확률
+// > TODO : 클리어할 때 몬스터를 만나지 않으려면 어떻게 할까?
 function meetRate() 
 {
     meetMon = (Math.round(Math.random()*10)) < 2;
@@ -115,7 +123,6 @@ function keyDownEventHandler(e)
 {   
    if(isMoving)
    {
-
         if(e.key === "ArrowRight" && arcPosX < canvas.width - arcRadius - tileWidth)
         {
             // 플레이어를 오른쪽으로 이동
@@ -162,7 +169,7 @@ function update()
     }
 
     // 게임 클리어 확인
-    checkToWin();
+    checkToWin()
 
     player.left = arcPosX - arcRadius;
     player.right = arcPosX + arcRadius;
@@ -174,7 +181,7 @@ function checkToWin()
     {
         if(isCollisionRectToRect(player, exit)){
             location.reload();
-            alert("clear")
+            alert("clear");
         }
     }
 function isCollisionRectToRect(rectA,rectB)
@@ -198,13 +205,12 @@ function draw()
 {
     // 화면 클리어
     context.clearRect(0, 0, canvas.width, canvas.height);
-    drawCanvas()
+    drawCanvas();
 
     // 다른 도형 그리기 
 
     drawTiles();
     drawArc();
-    drawExit();
 }
 
 function drawCanvas() 
@@ -220,15 +226,15 @@ function drawCanvas()
 
 function drawTiles() 
 {
-    context.beginPath();
     for(let i = 0; i < tileRow; i++)
     {
         for(let j =0; j < tileColumn; j++)
         {
+            context.beginPath();
             tiles[i][j].draw()
+            context.closePath();
         }
     }
-    context.closePath();
 }
 
 function drawArc() 
@@ -242,14 +248,6 @@ function drawArc()
     context.closePath();
 }
 
-function drawExit()
-{
-    context.beginPath();
-
-    exit.draw();
-
-    context.closePath();
-}
 
 function setTiles() 
 {
@@ -272,7 +270,7 @@ function setTiles()
 
 function setExit()
 {
-    exit = new Tile( 9 * (tileWidth + 1),
+    exit = tiles[9][9] = new Tile( 9 * (tileWidth + 1),
     9  * (tileHeight + 1),
     9 * (tileWidth + 1) + tileWidth,
     9 * (tileHeight + 1) + tileHeight,
