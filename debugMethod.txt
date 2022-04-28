@@ -1,0 +1,5 @@
+console.log를 찍어서 확인하는 것도 좋지만
+break point 잡아놓고 F5로 start debugging 해서 실행하면
+break point에서 걸린다 F10누를시 진행된다
+
+powershell Get-Alias
