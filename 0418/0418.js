@@ -45,7 +45,7 @@ console.log(Math.round(randomNum))  //반올림
         let randomNum = Math.round(Math.random() * 10);
         let correctNum = (randomNum % 8) + 3;
         let inputNum = prompt("정답을 입력하세요",0);
-        if(res == input) alert("정답입니다");
+        if(inputNum == correctNum) alert("정답입니다");
         else alert (`정답은 ${res}입니다`)
     }
 
