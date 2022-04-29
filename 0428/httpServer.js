@@ -30,6 +30,10 @@ const initHttpServer = (myHttpPort) => {
         res.send(connectionToPeer(req.body.data));
     })
 
+    app.post("sendMessage", (req, res) => {
+        sendMessage(req.body.data)
+    })
+
     app.listen(myHttpPort, ()=>  {
         console.log("listening httpServer... Port : ", myHttpPort)
     })
