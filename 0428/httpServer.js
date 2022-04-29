@@ -3,8 +3,9 @@
 //require는 common js에서 다 불러 온다 import는 express만 따로 // import가 훨씬 compact함
 //import쓰려면 package.json에 추가
 import express from "express"; 
-import { getBlocks, createBlock, blocks } from "./block.js";
+import { getBlocks, createBlock} from "./block.js";
 // 위의 함수들에서는 blocks가 선언된 코드가 없는데 변수를 잘 가져온다?????
+import { connectionToPeer } from "./p2pServer.js";
 
 // 초기화 함수
 const initHttpServer = (myHttpPort) => {
@@ -17,19 +18,20 @@ const initHttpServer = (myHttpPort) => {
     })
 
     app.get("/blocks", (req, res) => {
-        getBlocks()[0].index =1
-        console.log(getBlocks()[0].index)
-        console.log(getBlocks())
-        console.log(blocks)
         res.send(getBlocks());
     })
 
     app.post("/createBlock",(req, res) => {
         res.send(createBlock(req.body.data))
+        // postman에서 body / raw / json 으로 "data":"something"
+    })
+
+    app.post("/addPeer", (req, res) => {
+        res.send(connectionToPeer(req.body.data));
     })
 
     app.listen(myHttpPort, ()=>  {
-        console.log("listening httpServer... Port : ",myHttpPort)
+        console.log("listening httpServer... Port : ", myHttpPort)
     })
 }
 

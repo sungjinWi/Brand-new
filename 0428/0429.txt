@@ -1,0 +1,2 @@
+difficulty랑 nonce 추가
+문제 해결을 검사하는 함수
