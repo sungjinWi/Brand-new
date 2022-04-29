@@ -6,12 +6,15 @@ import express from "express";
 import { getBlocks, createBlock} from "./block.js";
 // 위의 함수들에서는 blocks가 선언된 코드가 없는데 변수를 잘 가져온다?????
 import { connectionToPeer, sendMessage } from "./p2pServer.js";
+import cors from "cors"
 
 // 초기화 함수
 const initHttpServer = (myHttpPort) => {
     const app = express();
     app.use(express.json()); // express에 bodyparser 내장됨
     app.use(express.urlencoded({extended : true}));
+
+    app.use(cors());
 
     app.get("/", (req, res) => {
         res.send("Hello world!")
@@ -27,11 +30,13 @@ const initHttpServer = (myHttpPort) => {
     })
 
     app.post("/addPeer", (req, res) => {
+        console.log(req.body.data)
         res.send(connectionToPeer(req.body.data));
     })
 
     app.post("/sendMessage", (req, res) => {
-        res.send(sendMessage(req.body.data))
+        sendMessage(req.body.data)
+        res.send(req.body.data.message)
     })
 
     app.listen(myHttpPort, ()=>  {

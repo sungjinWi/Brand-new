@@ -19,8 +19,9 @@ const sockets = []; //배열 시작점의 주소를 sockets에 저장
 // 응답을 받는 서버의 역할
 const initP2PServer = (p2pPort) => {
     const server = new WebSocketServer({port:p2pPort});
-    server.on("connection", (ws) => {
+    server.on("connection", (ws,request) => {
         console.log("someone ws connected to me")
+        console.log(request.headers)
         initConnection(ws);
     })
     
@@ -52,8 +53,6 @@ const initMessageHandler = (ws) => {
                 break;
             case MessageType.SENT_MESSAGE :
                 console.log(message.message);
-                console.log(ws)
-                break;
         }
     })
 }
