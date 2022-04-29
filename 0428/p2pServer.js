@@ -6,7 +6,7 @@ import { WebSocketServer } from "ws";
 
 const MessageType = {
     RESPONSE_MESSAGE : 0,
-    SEND_MESSAGE : 1
+    SENT_MESSAGE : 1
 
     // 최신 블록 요청
     // 모든 블록 요청
@@ -50,16 +50,16 @@ const initMessageHandler = (ws) => {
         switch(message.type)
         {
             case MessageType.RESPONSE_MESSAGE : // 메세지 받았을 때
-            
                 break;
-            case MessageType.SEND_MESSAGE :
-                write(ws, message)
+            case MessageType.SENT_MESSAGE :
+                console.log(message.message);
                 break;
         }
     })
 }
 
 const write = (ws, message) => {
+    console.log("write()", message)
     ws.send(JSON.stringify(message));
 }
 

@@ -5,7 +5,7 @@
 import express from "express"; 
 import { getBlocks, createBlock} from "./block.js";
 // 위의 함수들에서는 blocks가 선언된 코드가 없는데 변수를 잘 가져온다?????
-import { connectionToPeer } from "./p2pServer.js";
+import { connectionToPeer, sendMessage } from "./p2pServer.js";
 
 // 초기화 함수
 const initHttpServer = (myHttpPort) => {
@@ -30,7 +30,7 @@ const initHttpServer = (myHttpPort) => {
         res.send(connectionToPeer(req.body.data));
     })
 
-    app.post("sendMessage", (req, res) => {
+    app.post("/sendMessage", (req, res) => {
         sendMessage(req.body.data)
     })
 
