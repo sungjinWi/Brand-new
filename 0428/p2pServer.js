@@ -22,7 +22,6 @@ const initP2PServer = (p2pPort) => {
     server.on("connection", (ws) => {
         console.log("someone ws connected to me")
         initConnection(ws);
-        initMessageHandler(ws);
     })
     
     
@@ -53,6 +52,7 @@ const initMessageHandler = (ws) => {
                 break;
             case MessageType.SENT_MESSAGE :
                 console.log(message.message);
+                console.log(ws)
                 break;
         }
     })
