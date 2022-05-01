@@ -6,6 +6,7 @@ import axios from "axios";
 export default function StateTextFields() {
   const [peer, setPeer] = React.useState('');
   const [chat, setChat] = React.useState('');
+  const [chatList, setChatList] = React.useState([]);
 
   const changePeer = (e) => {
     setPeer(e.target.value);
@@ -24,7 +25,9 @@ export default function StateTextFields() {
     e.preventDefault();
     axios.post("http://localhost:3001/sendMessage", {"data" : {"type" : 1, "message":"minwook kun~~"}})
     .then(res => {
-        console.log(res)
+        setChatList([...chatList, res.data])
+        console.log(chatList)
+        console.log(res.data)
     })
 }
 

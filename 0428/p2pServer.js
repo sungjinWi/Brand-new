@@ -21,7 +21,7 @@ const initP2PServer = (p2pPort) => {
     const server = new WebSocketServer({port:p2pPort});
     server.on("connection", (ws,request) => {
         console.log("someone ws connected to me")
-        console.log(request.headers)
+        console.log(request.socket)
         initConnection(ws);
     })
     
