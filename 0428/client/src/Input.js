@@ -70,9 +70,7 @@ export default function StateTextFields() {
         onChange={changeChat}
       />
     <input type="submit" />
-
     </Box>
-
     </>
   );
 }

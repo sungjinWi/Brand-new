@@ -27,6 +27,10 @@ const getBlocks = () => { // 외부에 노출할 수 있게
     return blocks;
 }
 
+const getLatestBlock = () => {
+    return blocks[blocks.length - 1];
+}
+
 const calculateHash = (index, data, timestamp, previousHash, difficulty, nonce) => {
     return CryptoJS.SHA256(`${index + data + timestamp + previousHash + difficulty + nonce}`).toString(); // toString() 한 것이 우리가 원하는 형태
 }
@@ -148,4 +152,4 @@ const findNonce = (index, data, timestamp, previousHash, difficulty) => {
 
 const blocks = [createGenesisBlock()];
 
-export { getBlocks , createBlock, blocks };
+export { getBlocks , getLatestBlock , createBlock, blocks };
