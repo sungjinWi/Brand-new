@@ -2,8 +2,9 @@
 // 다른 노드와 통신을 위한 서버
 
 import WebSocket from "ws";
+// import random from "random";
 import { WebSocketServer } from "ws";
-import { getBlocks, getLatestBlock } from "./block.js"
+import { getBlocks, getLatestBlock, addBlock ,createBlock , isValidNewBlock } from "./block.js"
 
 const MessageType = {
     // RESPONSE_MESSAGE : 0,
@@ -37,6 +38,8 @@ const initP2PServer = (p2pPort) => {
 const initConnection = (ws) => {
     sockets.push(ws);
     initMessageHandler(ws);
+
+    write(ws, queryAllMessage()); // 연결될 때 
 }
 
 const connectionToPeer = (newPeer) => {
@@ -58,18 +61,68 @@ const initMessageHandler = (ws) => {
             //     console.log(ws._socket);
             //     receivedMsg = message.message;
             case MessageType.QUERY_LATEST:
-                ws.send(responseLatestMessage())
                 console.log("reply latest")
                 break;
             case MessageType.QUERY_ALL:
-                ws.send(responseAllMessage())
-                console.log("reply all")
+                write(ws, responseAllMessage())
                 break;
             case MessageType.RESPONSE_BLOCKCHAIN:
-                console.log(message.data)
+                console.log(ws._socket.remoteAddress, " : ", message.data) 
+                // handleBlockchainResponse(message);
+                replaceBlockchain(message.data);
                 break;
         }
     })
+}
+
+const isValidBlockchain = (receiveBlockchain) => {
+    // 같은 제네시스 블록인가
+    if (JSON.stringify(receiveBlockchain[0]) !== JSON.stringify(getBlocks()[0])) 
+        return false;
+    
+    // 체인 내의 모든 블록을 확인
+    for (let i = 1; i < receiveBlockchain.length; i++) 
+    {
+        if (isValidNewBlock(receiveBlockchain[i],receiveBlockchain[i-1]) == false)
+            return false;
+        
+    }
+
+    return true;
+}
+
+const replaceBlockchain = (receiveBlockchain) => {
+    if(isValidBlockchain(receiveBlockchain))
+    {
+        let blocks = getBlocks();
+        if(receiveBlockchain.length > blocks.length)
+        {
+            console.log("받은 블록체인 길이가 길다")
+            blocks = receiveBlockchain;
+        }
+        else if (receiveBlockchain.length == blocks.length && random.boolean()) // random을 조건문에 넣어주기 
+        {
+            console.log("받은 블록체인 길이가 같다")
+            blocks = receiveBlockchain;
+
+        }
+    }
+    else{
+        console.log("받은 블록체인에 문제")
+    }
+}
+
+const handleBlockchainResponse = (receiveBlockchain) => {
+    // 받은 블록체인보다 현재 블록체인이 더 길다 (안 바꿈)
+
+
+
+    // 같으면 (바꾸거나 안 바꿈)
+
+
+    
+    // 받은 블록체인이 현재 블록체인보다 더 길다 (바꿈)
+
 }
 
 const queryLatestMessage = () => {
@@ -85,17 +138,17 @@ const queryAllMessage = () => {
     })
 }
 const responseLatestMessage = () => {
-    return JSON.stringify({
+    return ({
             "type":MessageType.RESPONSE_BLOCKCHAIN ,
-            // "data":JSON.stringify(getLatestBlock()) // 이렇게 보내면 JSON.parse써서 데이터 가공해야함
-            "data":getLatestBlock() // 요렇게 보내면 바로 쓰기 편하다
+            "data":JSON.stringify(getLatestBlock()) // 이렇게 보내면 JSON.parse써서 데이터 가공해야함
+            // "data":getLatestBlock() // 요렇게 보내면 바로 쓰기 편하다
     })
 }
 const responseAllMessage = () => {
-    return JSON.stringify({
+    return ({
             "type":MessageType.RESPONSE_BLOCKCHAIN ,
-            // "data":JSON.stringify(getBlocks())
-            "data":getBlocks()
+            "data":JSON.stringify(getBlocks())
+            // "data":getBlocks()
     })
 }
 
@@ -104,10 +157,19 @@ const write = (ws, message) => { // 보낼 상대방의 ws
     ws.send(JSON.stringify(message));
 }
 
-const sendMessage = (message) => {
+const broadcasting = (message) => {
     sockets.forEach((socket)=>{
         write(socket, message)
     });
 }
 
-export { initP2PServer ,connectionToPeer, sendMessage};
+// 내가 새로운 블록을 채굴했을 때 다른 사람들에게 전파
+const mineBlock = (blockData) => {
+    const newBlock = createBlock(blockData);
+    if(addBlock(newBlock,getLatestBlock()))
+    {
+        broadcasting(responseLatestMessage())
+    }
+}
+
+export { initP2PServer ,connectionToPeer, broadcasting, responseLatestMessage, mineBlock};
