@@ -4,7 +4,7 @@
 import WebSocket from "ws";
 // import random from "random";
 import { WebSocketServer } from "ws";
-import { getBlocks, getLatestBlock, addBlock ,createBlock , isValidNewBlock , blocks } from "./block.js"
+import { getBlocks, getLatestBlock, addBlock ,createBlock , replaceBlockchain } from "./block.js"
 
 const MessageType = {
     // RESPONSE_MESSAGE : 0,
@@ -64,50 +64,42 @@ const initMessageHandler = (ws) => {
                 break;
             case MessageType.RESPONSE_BLOCKCHAIN:
                 console.log(ws._socket.remoteAddress, " : ", JSON.parse(message.data) )
-                replaceBlockchain(JSON.parse(message.data));
+                handleBlockchainResponse(message.data);
                 break;
         }
     })
 }
 
-const isValidBlockchain = (receiveBlockchain) => {
-    // 같은 제네시스 블록인가
-    if (JSON.stringify(receiveBlockchain[0]) !== JSON.stringify(getBlocks()[0])) 
-        return false;
-    
-    // 체인 내의 모든 블록을 확인
-    for (let i = 1; i < receiveBlockchain.length; i++) 
+const handleBlockchainResponse = (receivedBlockchain) => {
+    const newBlocks = JSON.parse(receivedBlockchain)
+    const latestNewBlock = newBlocks[newBlocks.length - 1];
+    const latestMyBlock = getLatestBlock()
+
+    // 받아온 블록의 마지막 인덱스가 내 마지막 블록의 인덱스보다 크다.
+    if(latestNewBlock.index > latestMyBlock.index)
     {
-        if (isValidNewBlock(receiveBlockchain[i],receiveBlockchain[i-1]) == false)
-            return false;
-        
-    }
-
-    return true;
-}
-
-const replaceBlockchain = (receiveBlockchain) => {
-
-
-    if(isValidBlockchain(receiveBlockchain))
-    {
-        if(receiveBlockchain.length > blocks.length)
+        // 받아온 마지막 블록의 previousHash와 내 마지막 블록의 hash를 확인한다.
+        if(latestNewBlock.previousHash === latestMyBlock.previousHash)
         {
-            console.log("받은 블록체인 길이가 길다")
-            blocks = receiveBlockchain;
+            if(addBlock(latestNewBlock, latestMyBlock))
+            {
+                // 제한된 플러딩(flooding)을 사용한다
+                broadcasting(responseLatestMessage()); 
+            }
         }
-        else if (receiveBlockchain.length == blocks.length && random.boolean()) // random을 조건문에 넣어주기 
+        //받아온 블록의 전체 크기가 1인 경우 -> 재요청
+        else if (newBlocks.length === 1)
         {
-            console.log("받은 블록체인 길이가 같다")
-            blocks = receiveBlockchain;
-
+            broadcasting(queryAllMessage());
+        }
+        else
+        {
+            //그 외 replaceBlockchain
+            // 받은 체인이 더 길면 바꾼다 길이가 같으면 랜덤으로 바꾼다 짧으면 안 바꾼다
+            replaceBlockchain(newBlocks)
         }
     }
-    else{
-        console.log("받은 블록체인에 문제")
-    }
 }
-
 
 const queryLatestMessage = () => {
     return ({
@@ -124,7 +116,7 @@ const queryAllMessage = () => {
 const responseLatestMessage = () => {
     return ({
             "type":MessageType.RESPONSE_BLOCKCHAIN ,
-            "data":JSON.stringify(getLatestBlock()) // 이렇게 보내면 JSON.parse써서 데이터 가공해야함 
+            "data":JSON.stringify([getLatestBlock()]) // 이렇게 보내면 JSON.parse써서 데이터 가공해야함 
             // "data":getLatestBlock() // 요렇게 보내면 바로 쓰기 편하다 하지만 데이터가 커질수록 낭비되는 패킷이 많아진다
     })
 }

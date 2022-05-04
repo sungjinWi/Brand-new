@@ -7,7 +7,7 @@
     hash : 블록 내부 데이터로 생성한 sha256 값 (블록의 유일성)
     previousHash : 이전 블록의 해쉬 (이전 블록 참조)
 */
-
+import random from "random";
 import CryptoJS from "crypto-js"
 
 class Block {
@@ -157,4 +157,46 @@ const findNonce = (index, data, timestamp, previousHash, difficulty) => {
 
 let blocks = [createGenesisBlock()];
 
-export { getBlocks , getLatestBlock , createBlock ,addBlock , isValidNewBlock ,blocks };
+const isValidBlockchain = (receiveBlockchain) => {
+    // 같은 제네시스 블록인가
+    if (JSON.stringify(receiveBlockchain[0]) !== JSON.stringify(getBlocks()[0])) {
+        console.log("제네시스 블록이 다름")
+        return false;
+    }
+    // 체인 내의 모든 블록을 확인
+    for (let i = 1; i < receiveBlockchain.length; i++) 
+    {
+        if (isValidNewBlock(receiveBlockchain[i],receiveBlockchain[i-1]) == false){
+            console.log("블록체인에 문제")
+            return false;
+        }
+            
+    }
+    console.log("valid blockchain")
+    return true;
+}
+
+// 통째로 교체할 때 쓰는 function
+const replaceBlockchain = (receiveBlockchain) => {
+    if(isValidBlockchain(receiveBlockchain))
+    {
+        if(receiveBlockchain.length > blocks.length)
+        {
+            console.log("받은 블록체인 길이가 길다")
+            blocks = receiveBlockchain;
+        }
+        else if (receiveBlockchain.length == blocks.length && random.boolean()) // random을 조건문에 넣어주기 
+        {
+            console.log("받은 블록체인 길이가 같다")
+            blocks = receiveBlockchain;
+
+        }
+        else{ console.log("받은 블록체인이 더 짧음")}
+    }
+    else{
+        console.log("받은 블록체인에 문제")
+    }
+}
+
+
+export { getBlocks , getLatestBlock , createBlock ,addBlock ,replaceBlockchain };
