@@ -10,6 +10,9 @@
 import random from "random";
 import CryptoJS from "crypto-js"
 
+const BLOCK_GENERATION_INTERVAL = 10; // 이 주기마다 블록이 생성되게 하는것이 우리의 목표 // SECOND
+const DIFFICULTY_ADJUSTMENT_INTERVAL = 10; // 난이도를 바꿀지 안바꿀지 check // BLOCK 생성갯수
+
 class Block {
     constructor(index, data, timestamp, hash, previousHash, difficulty, nonce) {
         this.index = index;
@@ -42,7 +45,7 @@ const calculateHash = (index, data, timestamp, previousHash, difficulty, nonce) 
 
 // new Date().getTime() / 1000
 const createGenesisBlock = () => {
-    const genesisBlock = new Block(0, 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks',0, 0, 0, 0, 0);
+    const genesisBlock = new Block(0, 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks',0, 0, 0, 1, 0);
     
     genesisBlock.hash = calculateHash(genesisBlock.index, genesisBlock.data, genesisBlock.timestamp,
     genesisBlock.previousHash, genesisBlock.difficulty, genesisBlock.nonce);
@@ -53,7 +56,7 @@ const createBlock = (blockData) => {
     const previousBlock = blocks[blocks.length - 1];
     const nextIndex = previousBlock.index + 1;
     const nextTimestamp = new Date().getTime() / 1000;
-    const nextDifficulty = 1;
+    const nextDifficulty = getDifficulty();
     const nextNonce = findNonce(nextIndex, blockData ,nextTimestamp, previousBlock.hash, nextDifficulty);
 
     const nextHash = calculateHash(nextIndex, blockData ,nextTimestamp, previousBlock.hash, nextDifficulty, nextNonce);
@@ -155,7 +158,6 @@ const findNonce = (index, data, timestamp, previousHash, difficulty) => {
 
 }
 
-let blocks = [createGenesisBlock()];
 
 const isValidBlockchain = (receiveBlockchain) => {
     // 같은 제네시스 블록인가
@@ -197,6 +199,46 @@ const replaceBlockchain = (receiveBlockchain) => {
         console.log("받은 블록체인에 문제")
     }
 }
+
+const getAdjustmentDifficulty = () => {
+    // 현재 만들 블록의 시간, 마지막으로 난이도 조정된 시간의 차를 BLOCK_GENERATION_INTERVAL 와 비교해서 비슷하게 맞추기 위해 난이도를 조정한다
+    const prevAdjustedBlock = blocks[blocks.length - DIFFICULTY_ADJUSTMENT_INTERVAL];
+    const latestBlock = getLatestBlock();
+    const elapsedTime = latestBlock.timestamp - prevAdjustedBlock.timestamp; //timestamp가 sec
+    const expectedTime = DIFFICULTY_ADJUSTMENT_INTERVAL * BLOCK_GENERATION_INTERVAL;
+
+    if(elapsedTime > expectedTime * 2)
+    {
+        // 난이도 낮춤.
+        return prevAdjustedBlock.difficulty - 1;
+    }
+    else if(elapsedTime < expectedTime / 2)
+    {
+        // 난이도 높임
+        return prevAdjustedBlock.difficulty + 1;
+    }
+    else
+    {
+        return prevAdjustedBlock.difficulty;
+    }
+}
+
+const getDifficulty = () => {
+    const latestBlock = getLatestBlock();
+
+    // 난이도 조정 주기 확인
+    if(latestBlock.index % DIFFICULTY_ADJUSTMENT_INTERVAL === 0 &&
+        latestBlock.index !== 0) // 10, 20, 30 일때
+        {
+            return getAdjustmentDifficulty();
+        }
+    
+
+    return latestBlock.difficulty;
+}
+
+let blocks = [createGenesisBlock()];
+
 
 
 export { getBlocks , getLatestBlock , createBlock ,addBlock ,replaceBlockchain };
