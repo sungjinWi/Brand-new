@@ -157,4 +157,4 @@ const findNonce = (index, data, timestamp, previousHash, difficulty) => {
 
 let blocks = [createGenesisBlock()];
 
-export { getBlocks , getLatestBlock , createBlock ,addBlock , isValidNewBlock };
+export { getBlocks , getLatestBlock , createBlock ,addBlock , isValidNewBlock ,blocks };

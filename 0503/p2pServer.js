@@ -4,7 +4,7 @@
 import WebSocket from "ws";
 // import random from "random";
 import { WebSocketServer } from "ws";
-import { getBlocks, getLatestBlock, addBlock ,createBlock , isValidNewBlock } from "./block.js"
+import { getBlocks, getLatestBlock, addBlock ,createBlock , isValidNewBlock , blocks } from "./block.js"
 
 const MessageType = {
     // RESPONSE_MESSAGE : 0,
@@ -68,7 +68,7 @@ const initMessageHandler = (ws) => {
                 break;
             case MessageType.RESPONSE_BLOCKCHAIN:
                 console.log(ws._socket.remoteAddress, " : ", message.data) 
-                // handleBlockchainResponse(message);
+                handleBlockchainResponse(message);
                 replaceBlockchain(message.data);
                 break;
         }
@@ -112,18 +112,6 @@ const replaceBlockchain = (receiveBlockchain) => {
     }
 }
 
-const handleBlockchainResponse = (receiveBlockchain) => {
-    // 받은 블록체인보다 현재 블록체인이 더 길다 (안 바꿈)
-
-
-
-    // 같으면 (바꾸거나 안 바꿈)
-
-
-    
-    // 받은 블록체인이 현재 블록체인보다 더 길다 (바꿈)
-
-}
 
 const queryLatestMessage = () => {
     return ({
@@ -140,15 +128,15 @@ const queryAllMessage = () => {
 const responseLatestMessage = () => {
     return ({
             "type":MessageType.RESPONSE_BLOCKCHAIN ,
-            "data":JSON.stringify(getLatestBlock()) // 이렇게 보내면 JSON.parse써서 데이터 가공해야함
-            // "data":getLatestBlock() // 요렇게 보내면 바로 쓰기 편하다
+            // "data":JSON.stringify(getLatestBlock()) // 이렇게 보내면 JSON.parse써서 데이터 가공해야함
+            "data":getLatestBlock() // 요렇게 보내면 바로 쓰기 편하다
     })
 }
 const responseAllMessage = () => {
     return ({
             "type":MessageType.RESPONSE_BLOCKCHAIN ,
-            "data":JSON.stringify(getBlocks())
-            // "data":getBlocks()
+            // "data":JSON.stringify(getBlocks())
+            "data":getBlocks()
     })
 }
 
