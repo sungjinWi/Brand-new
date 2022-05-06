@@ -7,6 +7,7 @@ import { getBlocks, createBlock} from "./block.js";
 // 위의 함수들에서는 blocks가 선언된 코드가 없는데 변수를 잘 가져온다?????
 import { connectionToPeer, mineBlock } from "./p2pServer.js";
 import cors from "cors"
+import { getPublicKeyFromWallet } from "./wallet.js";
 
 // 초기화 함수
 const initHttpServer = (myHttpPort) => {
@@ -36,6 +37,11 @@ const initHttpServer = (myHttpPort) => {
     app.post("/addPeer", (req, res) => {
         console.log(req.body.data)
         res.send(connectionToPeer(req.body.data));
+    })
+
+    app.get("/address", (req,res)=> {
+        const address = getPublicKeyFromWallet();
+        res.json({"address" : address}); //또는 백틱
     })
 
     app.listen(myHttpPort, ()=>  {
