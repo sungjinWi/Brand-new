@@ -44,6 +44,12 @@ const initHttpServer = (myHttpPort) => {
         res.json({"address" : address}); //또는 백틱
     })
 
+    app.post("/sendTransaction", (req,res)=> {
+        const address = req.body.address;
+        const amount = req.body.amount;
+        res.send(sendTransaction(address,amount));;
+    })
+
     app.listen(myHttpPort, ()=>  {
         console.log("listening httpServer... Port : ", myHttpPort)
     })
