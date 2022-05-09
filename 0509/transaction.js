@@ -108,10 +108,11 @@ const sendTransaction = (address, amount) => {
     const tx = createTransaction(address, amount);
 
     // 2. 트랜잭션 풀에 추가
-    
-
+    transactionPool.push(tx);
 
     // 3. 주변노드에 전파
+
+
 
     return tx;
 } 
@@ -216,3 +217,75 @@ const createTxOuts = (address, amount, leftoverAmount) => {
         return [txOut];
     }
 }
+
+const addToTransactionPool = (transaction) => {
+
+    // 올바른 트랜잭션인지
+    if (!isValidateTransaction(transaction, unspentTxOuts)) {
+        throw Error("추가하려는 트랜잭션이 올바르지않다", transaction)
+    }
+
+
+    // 중복되는지
+    if (!isValidateTxForPool(transaction)) {
+        throw Error("추가하려는 트랜잭션이 트랜잭션 풀에 있다", transaction)
+    }
+
+
+    transactionPool.push(transaction);
+}
+
+const isValidateTransaction = (transaction, unspentTxOuts) => {
+    if(getTransactionId(transaction) === transaction.id) {
+        console.log("invalid transaction id : ", transaction.id);
+        return false;
+    }
+
+    const totalTxInValues = transaction.txIns
+        .map( (txIn) => getTxInAmount(txIn, unspentTxOuts))
+        .reduce((a, b) => (a + b), 0);
+    
+    const totalTxOutValues = transaction.txOuts
+    .map((txOut) => txOut.amount)
+    .reduce((a,b) => (a + b), 0);
+
+    if(totalTxInValues !== totalTxOutValues){
+        console.log("totalTxInValues !== totalTxOutValues id : ", transaction.id);
+        return false;
+    }
+
+    return true;
+}
+
+const isValidateTxForPool = (transaction) => {
+    // 트랜잭션 풀에 있는 txIns들과 transaction에 txIns들을 비교해서 같은 것이 있는지 확인
+    const txPoolIns = _(transactionPool)
+        .map((tx) => tx.txIns)
+        .flatten()
+        .value();
+
+    const containTxIn = (txIns, txIn) => {
+        return _.find(txPoolIns, (txPoolIn) => {
+            return txIn.txOutIndex === txPoolIn.txOutIndex &&
+            txIn.txOutId === txPoolIn.txOutId
+        })
+    }
+
+    for (const txIn of transaction.txIns) {
+        if (containTxIn(txIn)) {
+            console.log('이미 존재하는 트랜잭션 id : ', transaction.id);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+const getTxInAmount = (txIn, unspentTxOuts) => {
+    const findUnspentTxOut = unspentTxOuts.find((uTxO) => uTxO.txOutId === txIn.txOutId && 
+        uTxO.txOutIndex === txIn.txOutIndex);
+
+        return findUnspentTxOut.amount;
+}
+
+export { getTransactionPool , addToTransactionPool };

@@ -5,6 +5,7 @@ import WebSocket from "ws";
 // import random from "random";
 import { WebSocketServer } from "ws";
 import { getBlocks, getLatestBlock, addBlock ,createBlock , replaceBlockchain } from "./block.js"
+import { getTransactionPool , addToTransactionPool } from "./transaction";
 
 const MessageType = {
     // RESPONSE_MESSAGE : 0,
@@ -17,7 +18,12 @@ const MessageType = {
     QUERY_ALL : 1,
 
     // 블록 전달
-    RESPONSE_BLOCKCHAIN: 2
+    RESPONSE_BLOCKCHAIN: 2,
+
+    // 트랜잭션 관련
+    QUERY_TRANSACTION_POOL : 3,
+
+    RESPONSE_TRANSACTION_POOL : 4
 }
 
 const sockets = []; //배열 시작점의 주소를 sockets에 저장
@@ -66,6 +72,13 @@ const initMessageHandler = (ws) => {
                 console.log(ws._socket.remoteAddress, " : ", JSON.parse(message.data) )
                 handleBlockchainResponse(message.data);
                 break;
+            case MessageType.QUERY_TRANSACTION_POOL:
+                write(ws, responseTransactionPoolMessage())
+                break;
+            case MessageType.RESPONSE_TRANSACTION_POOL:
+                handleTransactionPoolResponse(message.data);
+                break;
+
         }
     })
 }
@@ -101,6 +114,16 @@ const handleBlockchainResponse = (receivedBlockchain) => {
     }
 }
 
+const handleTransactionPoolResponse = (receivedTransactionPool) => {
+    console.log("receivedTransactionPool : ", receivedTransactionPool);
+
+    receivedTransactionPool.forEach( (transaction) => {
+        // 중복검사 후 트랜잭션 풀에 추가
+        addToTransactionPool(transaction);
+        // 다시 전파
+    })
+}
+
 const queryLatestMessage = () => {
     return ({
             "type":MessageType.QUERY_LATEST,
@@ -126,6 +149,12 @@ const responseAllMessage = () => {
             "data":JSON.stringify(getBlocks())
             // "data":getBlocks()
     })
+}
+const responseTransactionPoolMessage = () => {
+    return ({
+        "type":MessageType.RESPONSE_TRANSACTION_POOL,
+        "data":JSON.stringify(getTransactionPool())
+})
 }
 
 const write = (ws, message) => { // 보낼 상대방의 ws

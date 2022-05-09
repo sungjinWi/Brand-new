@@ -30,3 +30,5 @@ JSON.parse(JSON.stringify())는 안쪽에 것도 될까?
 filterTxPoolTxs 는 내가 서명한 input(내가 올린애)인지 확인하는 함수
 
 const unsignedTxIns = includeTxOuts.map(createUnsignedTxIn); 이게 가능한 문법이냐
+
+노드끼리 통신하면서 중복되는 데이터가 계속 들어올 수 있다 -> 중복검사로 걸러주자
