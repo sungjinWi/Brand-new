@@ -288,4 +288,31 @@ const getTxInAmount = (txIn, unspentTxOuts) => {
         return findUnspentTxOut.amount;
 }
 
-export { getTransactionPool , addToTransactionPool };
+const updateTransactionPool = () => {
+
+    const removable = [];
+    // 1. 현재 트랜잭션 풀에 있는 트랜잭션 중에 
+    //    사용되지 않은 TxOuts 내용과 일치하지 않는 (이미 처리됐을 가능성이 있다) 트랜잭션들을 제거한다. 
+    for (const tx of transactionPool) {
+        for (const txIn of tx.txIns) {
+            if(isInTx(txIn)) { // 그 txIn이 unspentTxOuts에 있다
+
+            }
+            else {
+                removable.push(tx);
+                break;
+            }
+        }
+    }
+    
+    transactionPool = _.without(transactionPool,...removable);
+}
+
+const isInTx = (txIn) => {
+    const findTxOut = _(unspentTxOuts).find((uTxO)=> {return uTxO.txOutIndex === txIn.txOutIndex && 
+    uTxO.txOutId === txIn.txOutId});
+
+    return findTxOut !== undefined;
+}
+
+export { getTransactionPool , addToTransactionPool , getCoinbaseTransaction , updateTransactionPool };

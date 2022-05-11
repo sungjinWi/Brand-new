@@ -9,6 +9,8 @@
 */
 import random from "random";
 import CryptoJS from "crypto-js"
+import { getCoinbaseTransaction, getTransactionPool, updateTransactionPool , updateTransactionPool } from "./transaction";
+import { getPublicKeyFromWallet } from "./wallet";
 
 const BLOCK_GENERATION_INTERVAL = 10; // 이 주기마다 블록이 생성되게 하는것이 우리의 목표 // SECOND
 const DIFFICULTY_ADJUSTMENT_INTERVAL = 10; // 난이도를 바꿀지 안바꿀지 check // BLOCK 생성갯수
@@ -66,9 +68,29 @@ const createBlock = (blockData) => {
         return newBlock;
 }
 
+const createNextBlock = () => {
+    // 1. 코인베이스 트랜잭션 생성
+    const coinbaseTx = getCoinbaseTransaction(getPublicKeyFromWallet(), getLatestBlock().index + 1 );
+
+    // 2. 생성된 코인베이스 트랜잭션 뒤에 현재 보유 중인 트랜잭션 풀의 내용을 포함 (마이닝 된 블록의 데이터)
+    const blockData = [coinbaseTx].concat(getTransactionPool());
+    // 현재 상용화된 모델은 수수료 순서에 의해 일부 트랜잭션만 처리
+    return createBlock(blockData);
+}
+
 const addBlock = (newBlock,previousBlock) => {
     if(isValidNewBlock(newBlock,previousBlock)){
         blocks.push(newBlock)
+
+        // 블록체인 자체가 바뀔때
+
+        // 사용되지 않은 txOuts 셋팅
+
+
+        // 트랜잭션 풀 업데이트
+        updateTransactionPool(unspentTxOuts);
+        
+
         return true;
     }
     return false
@@ -182,16 +204,16 @@ const isValidBlockchain = (receiveBlockchain) => {
 const replaceBlockchain = (receiveBlockchain) => {
     if(isValidBlockchain(receiveBlockchain))
     {
-        if(receiveBlockchain.length > blocks.length)
+        if((receiveBlockchain.length > blocks.length) ||
+        receiveBlockchain.length == blocks.length && random.boolean())
         {
-            console.log("받은 블록체인 길이가 길다")
-            blocks = receiveBlockchain;
-        }
-        else if (receiveBlockchain.length == blocks.length && random.boolean()) // random을 조건문에 넣어주기 
-        {
-            console.log("받은 블록체인 길이가 같다")
+            console.log("받은 블록체인 길이가 길거나 같다")
             blocks = receiveBlockchain;
 
+            // 사용되지 않은 txOuts 셋팅
+
+            // 트랜잭션 풀 업데이트
+            updateTransactionPool(unspentTxOuts);
         }
         else{ console.log("받은 블록체인이 더 짧음")}
     }
