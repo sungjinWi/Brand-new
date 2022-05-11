@@ -10,10 +10,18 @@ let transactionPool = [];
 const getTransactionPool = () => {
     return _.cloneDeep(transactionPool);
 }
+//UnspentTxOut []
+let unspentTxOuts = processTransaction(
+    transactions /* Transaction[] */ ,
+    [] /* UnspentTxout[] */,
+    0 /* blockindex */
+    ); 
+const GetUnspentTxOuts = () => {
+    return _.cloneDeep(unspentTxOuts)
+}
+_.difference
 
-let unspentTxOuts = []; // UnspentTxout []
-
-class UnspentTxout {
+class UnspentTxOut {
     constructor(txOutId, txOutIndex, address, amount) {
         this.txOutId = txOutId;
         this.txOutIndex = txOutIndex;
@@ -315,4 +323,42 @@ const isInTx = (txIn) => {
     return findTxOut !== undefined;
 }
 
-export { getTransactionPool , addToTransactionPool , getCoinbaseTransaction , updateTransactionPool };
+const processTransaction = (transactions, unspentTxOuts, blockIndex) => {
+    // 1. 예외처리 (트랜잭션 구조를 검증하는 과정)
+    if(isValidateBlockTransaction(transactions, unspentTxOuts, blockIndex)) {
+        console.log("invalid processTransaction!")
+        return null;
+    }
+
+    // 2. 미사용 txOuts를 추출하는 과정
+    //  2_1. 블록에 있는 데이터 (처리해야 할 트랜잭션 정보) 중에서 txIns로 소모된 txOuts(UnspentTxOut)를 구성
+    const consumedTxOuts = transactions.map((tx) => tx.txIns)
+    .reduce((a,b)=> a.concat(b), [])
+    .map((txIn)=> new UnspentTxOut(txIn.txOutId, txIn.txOutIndex, '', 0));
+
+    //  2_2. 새로 들어온 트랜잭션 정보에서 추출한 UnspentTxOut 생성
+    const newUnspentTxOuts = transactions.map((tx)=> {
+        return tx.txOuts.map((txOut) => new UnspentTxOut(tx.id, blockIndex, txOut.address, txOut.amount))
+        })
+        .reduce((a,b) => a.concat(b),[]);
+    
+
+    //  2_3. 기존 UnspentTxOut - 소모된 UnspentTxOut + newUnspentTxOut
+    // 두 1차원 배열의 txOutId와 txOutIndex를 비교해서 같은 요소를 filter하는 코드를 만들자
+
+    // 내가 한거
+    // const leftUnspentTxOuts = unspentTxOuts.filter(txOut=> consumedTxOuts.filter((conTxout)=> conTxout.txOutId === txOut.txOutId && conTxout.txOutIndex === txOut.txOutIndex).length==0)
+    // const resultUnspentTxOuts = leftUnspentTxOuts.concat(newUnspentTxOuts) 
+
+    const resultUnspentTxOuts = (unspentTxOuts.filter((uTxO)=> !checkSameElement(consumedTxOuts,uTxO.txOutIndex,uTxO.txOutId)))
+    .concat(newUnspentTxOuts)
+
+    unspentTxOuts = resultUnspentTxOuts;
+    return resultUnspentTxOuts;
+}
+
+const checkSameElement = (txOuts, txOutIndex, txOutId) => {
+    return txOuts.find((txOut) => txOut.txOutId === txOutId && txOut.txOutIndex === txOutIndex)
+}
+
+export { getTransactionPool , addToTransactionPool , getCoinbaseTransaction , updateTransactionPool, GetUnspentTxOuts ,processTransaction };

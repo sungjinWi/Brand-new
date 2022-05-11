@@ -9,7 +9,7 @@
 */
 import random from "random";
 import CryptoJS from "crypto-js"
-import { getCoinbaseTransaction, getTransactionPool, updateTransactionPool , updateTransactionPool } from "./transaction";
+import { getCoinbaseTransaction, getTransactionPool, updateTransactionPool, GetUnspentTxOuts, processTransaction } from "./transaction";
 import { getPublicKeyFromWallet } from "./wallet";
 
 const BLOCK_GENERATION_INTERVAL = 10; // 이 주기마다 블록이 생성되게 하는것이 우리의 목표 // SECOND
@@ -85,11 +85,11 @@ const addBlock = (newBlock,previousBlock) => {
         // 블록체인 자체가 바뀔때
 
         // 사용되지 않은 txOuts 셋팅
+        processTransaction(newBlock.data, GetUnspentTxOuts(), newBlock.index)
 
 
         // 트랜잭션 풀 업데이트
         updateTransactionPool(unspentTxOuts);
-        
 
         return true;
     }
@@ -211,6 +211,8 @@ const replaceBlockchain = (receiveBlockchain) => {
             blocks = receiveBlockchain;
 
             // 사용되지 않은 txOuts 셋팅
+            const latestBlock = getLatestBlock();
+            processTransaction(latestBlock.data, GetUnspentTxOuts(), latestBlock.index)
 
             // 트랜잭션 풀 업데이트
             updateTransactionPool(unspentTxOuts);
@@ -259,7 +261,10 @@ const getDifficulty = () => {
     return latestBlock.difficulty;
 }
 
-let blocks = [createGenesisBlock()];
+const genesisBlock = createGenesisBlock();
+genesisBlock.data = getCoinbaseTransaction(getPublicKeyFromWallet(), getLatestBlock().index + 1 );
+
+let blocks = [genesisBlock];
 
 
 
