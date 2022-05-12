@@ -9,8 +9,8 @@
 */
 import random from "random";
 import CryptoJS from "crypto-js"
-import { getCoinbaseTransaction, getTransactionPool, updateTransactionPool, GetUnspentTxOuts, processTransaction } from "./transaction";
-import { getPublicKeyFromWallet } from "./wallet";
+import { getCoinbaseTransaction, getTransactionPool, updateTransactionPool, GetUnspentTxOuts, processTransaction } from "./transaction.js";
+import { getPublicKeyFromWallet } from "./wallet.js";
 
 const BLOCK_GENERATION_INTERVAL = 10; // 이 주기마다 블록이 생성되게 하는것이 우리의 목표 // SECOND
 const DIFFICULTY_ADJUSTMENT_INTERVAL = 10; // 난이도를 바꿀지 안바꿀지 check // BLOCK 생성갯수
@@ -74,6 +74,7 @@ const createNextBlock = () => {
 
     // 2. 생성된 코인베이스 트랜잭션 뒤에 현재 보유 중인 트랜잭션 풀의 내용을 포함 (마이닝 된 블록의 데이터)
     const blockData = [coinbaseTx].concat(getTransactionPool());
+    console.log(blockData)
     // 현재 상용화된 모델은 수수료 순서에 의해 일부 트랜잭션만 처리
     return createBlock(blockData);
 }
@@ -262,9 +263,11 @@ const getDifficulty = () => {
 }
 
 const genesisBlock = createGenesisBlock();
-genesisBlock.data = getCoinbaseTransaction(getPublicKeyFromWallet(), getLatestBlock().index + 1 );
+genesisBlock.data = getCoinbaseTransaction(getPublicKeyFromWallet(), genesisBlock.index );
 
 let blocks = [genesisBlock];
+console.log(blocks)
+// let blocks = [createGenesisBlock()];
 
 
 

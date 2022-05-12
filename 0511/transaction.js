@@ -1,6 +1,6 @@
 import CryptoJS from "crypto-js"
 import _ from "lodash";
-import { getPublicKeyFromWallet, getPrivateKeyFromWallet } from "./wallet"
+import { getPublicKeyFromWallet, getPrivateKeyFromWallet } from "./wallet.js"
 
 const COINBASE_AMOUNT = 50;
 
@@ -10,12 +10,7 @@ let transactionPool = [];
 const getTransactionPool = () => {
     return _.cloneDeep(transactionPool);
 }
-//UnspentTxOut []
-let unspentTxOuts = processTransaction(
-    transactions /* Transaction[] */ ,
-    [] /* UnspentTxout[] */,
-    0 /* blockindex */
-    ); 
+
 const GetUnspentTxOuts = () => {
     return _.cloneDeep(unspentTxOuts)
 }
@@ -137,7 +132,7 @@ const createTransaction = (amount, address) => {
     const { includeTxOuts, leftoverAmount } = findTxOutsForAmount(amount, filteredUnspentTxOuts);
 
     // 3. 서명 전의 TxIns로 구성
-    const unsignedTxIns = includeTxOuts.map(createUnsignedTxIn); // 이렇게도 그냥 쓸 수 있다고?? 호출도 없이???
+    const unsignedTxIns = includeTxOuts.map(createUnsignedTxIn); // 이렇게도 그냥 쓸 수 있다고?? 호출도 없이??? -> 할 수 있다
     
 
     // 4. 트랜잭션 구성
@@ -241,6 +236,7 @@ const addToTransactionPool = (transaction) => {
 
 
     transactionPool.push(transaction);
+    console.log("트랜잭션풀에 추가됨")
 }
 
 const isValidateTransaction = (transaction, unspentTxOuts) => {
@@ -360,5 +356,12 @@ const processTransaction = (transactions, unspentTxOuts, blockIndex) => {
 const checkSameElement = (txOuts, txOutIndex, txOutId) => {
     return txOuts.find((txOut) => txOut.txOutId === txOutId && txOut.txOutIndex === txOutIndex)
 }
+
+//UnspentTxOut []
+let unspentTxOuts = processTransaction(
+    [transactions] /* Transaction[] */ ,
+    [] /* UnspentTxout[] */,
+    0 /* blockindex */
+    ); 
 
 export { getTransactionPool , addToTransactionPool , getCoinbaseTransaction , updateTransactionPool, GetUnspentTxOuts ,processTransaction };

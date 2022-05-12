@@ -5,7 +5,7 @@ import WebSocket from "ws";
 // import random from "random";
 import { WebSocketServer } from "ws";
 import { getBlocks, getLatestBlock, addBlock ,createBlock , replaceBlockchain } from "./block.js"
-import { getTransactionPool , addToTransactionPool } from "./transaction";
+import { getTransactionPool , addToTransactionPool } from "./transaction.js";
 
 const MessageType = {
     // RESPONSE_MESSAGE : 0,
