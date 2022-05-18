@@ -4,7 +4,7 @@
 import WebSocket from "ws";
 // import random from "random";
 import { WebSocketServer } from "ws";
-import { getBlocks, getLatestBlock, addBlock ,createBlock , replaceBlockchain } from "./block.js"
+import { getBlocks, getLatestBlock, addBlock  , replaceBlockchain ,createNextBlock } from "./block.js"
 import { getTransactionPool , addToTransactionPool } from "./transaction.js";
 
 const MessageType = {
@@ -169,12 +169,13 @@ const broadcasting = (message) => {
 }
 
 // 내가 새로운 블록을 채굴했을 때 다른 사람들에게 전파
-const mineBlock = (blockData) => {
-    const newBlock = createBlock(blockData);
+const mineBlock = () => {
+    const newBlock = createNextBlock();
     if(addBlock(newBlock,getLatestBlock()))
     {
         broadcasting(responseLatestMessage())
     }
+    return newBlock;
 }
 
 export { initP2PServer ,connectionToPeer, broadcasting, responseLatestMessage, mineBlock};

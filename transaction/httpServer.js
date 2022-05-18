@@ -8,6 +8,7 @@ import { getBlocks, createBlock} from "./block.js";
 import { connectionToPeer, mineBlock } from "./p2pServer.js";
 import cors from "cors"
 import { getPublicKeyFromWallet } from "./wallet.js";
+import { sendTransaction } from "./transaction.js"
 
 // 초기화 함수
 const initHttpServer = (myHttpPort) => {
@@ -31,7 +32,7 @@ const initHttpServer = (myHttpPort) => {
     })
 
     app.post("/mineBlock", (req,res)=> {
-        res.send(mineBlock(req.body.data));
+        res.send(mineBlock());
     })
 
     app.post("/addPeer", (req, res) => {

@@ -2,7 +2,7 @@ import ecdsa from "elliptic";
 import fs from "fs";
 
 const ec = new ecdsa.ec("secp256k1");
-const privateKeyLocation = 'wallet/' + (process.env.PRIVATE_KEY || "default")
+const privateKeyLocation = './wallet/' + (process.env.PRIVATE_KEY || "default")
 const privateKeyFile = privateKeyLocation + "/private_key";
 
 const createPrivateKey = () => {

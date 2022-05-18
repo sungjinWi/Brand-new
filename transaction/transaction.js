@@ -1,6 +1,7 @@
 import CryptoJS from "crypto-js"
 import _ from "lodash";
 import { getPublicKeyFromWallet, getPrivateKeyFromWallet } from "./wallet.js"
+import { genesisBlock } from "./block.js";
 
 const COINBASE_AMOUNT = 50;
 
@@ -14,7 +15,6 @@ const getTransactionPool = () => {
 const GetUnspentTxOuts = () => {
     return _.cloneDeep(unspentTxOuts)
 }
-_.difference
 
 class UnspentTxOut {
     constructor(txOutId, txOutIndex, address, amount) {
@@ -120,7 +120,7 @@ const sendTransaction = (address, amount) => {
     return tx;
 } 
 
-const createTransaction = (amount, address) => {
+const createTransaction = (address, amount) => {
     // 1. 아직 처리되지 않았지만 (블록에 담기지 않음) 트랜잭션 풀에 올라가 있는 내용을 확인
     const myAddress = getPublicKeyFromWallet();
     const myUnspentTxOuts = unspentTxOuts.filter( uTxO => uTxO.address === myAddress);
@@ -193,13 +193,13 @@ const findTxOutsForAmount = (amount, filteredUnspentTxOuts) => {
     for (const unspentTxOut of filteredUnspentTxOuts) {
         includeTxOuts.push(unspentTxOut)
         unspentTxOut.amount = currentAmount + unspentTxOut.amount;
-        if (currentAmount >= amount) {
+        // if (currentAmount >= amount) {
             const leftoverAmount = currentAmount - amount;
             return { includeTxOuts, leftoverAmount };
-        }
+        // }
     }
-
-    throw Error ("보내려는 금액보다 보유 금액이 적다!");
+    // if (error) throw Error ("보내려는 금액보다 보유 금액이 적다!");
+    
 }
 
 const createUnsignedTxIn = (unspentTxOut) => {
@@ -358,10 +358,10 @@ const checkSameElement = (txOuts, txOutIndex, txOutId) => {
 }
 
 //UnspentTxOut []
-let unspentTxOuts = processTransaction(
-    [transactions] /* Transaction[] */ ,
+let unspentTxOuts =  processTransaction(
+    [] /* Transaction[] */ ,
     [] /* UnspentTxout[] */,
     0 /* blockindex */
     ); 
 
-export { getTransactionPool , addToTransactionPool , getCoinbaseTransaction , updateTransactionPool, GetUnspentTxOuts ,processTransaction };
+export { getTransactionPool , addToTransactionPool , getCoinbaseTransaction , updateTransactionPool, GetUnspentTxOuts ,processTransaction, sendTransaction };

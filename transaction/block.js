@@ -86,11 +86,11 @@ const addBlock = (newBlock,previousBlock) => {
         // 블록체인 자체가 바뀔때
 
         // 사용되지 않은 txOuts 셋팅
-        processTransaction(newBlock.data, GetUnspentTxOuts(), newBlock.index)
+        const newUnspentTxouts = processTransaction(newBlock.data, GetUnspentTxOuts(), newBlock.index)
 
 
         // 트랜잭션 풀 업데이트
-        updateTransactionPool(unspentTxOuts);
+        updateTransactionPool(newUnspentTxouts);
 
         return true;
     }
@@ -109,7 +109,7 @@ const addBlock = (newBlock,previousBlock) => {
 const isValidBlockStructure = (newBlock) => {
     return(
         typeof (newBlock.index) === "number"
-        && typeof (newBlock.data) === "string"
+        && typeof (newBlock.data) === "object"
         && typeof (newBlock.timestamp) === "number"
         && typeof (newBlock.hash) === "string"
         && typeof (newBlock.previousHash) === "string"
@@ -263,7 +263,7 @@ const getDifficulty = () => {
 }
 
 const genesisBlock = createGenesisBlock();
-genesisBlock.data = getCoinbaseTransaction(getPublicKeyFromWallet(), genesisBlock.index );
+genesisBlock.data = [getCoinbaseTransaction(getPublicKeyFromWallet(), genesisBlock.index )];
 
 let blocks = [genesisBlock];
 console.log(blocks)
@@ -271,4 +271,4 @@ console.log(blocks)
 
 
 
-export { getBlocks , getLatestBlock , createBlock ,addBlock ,replaceBlockchain };
+export { getBlocks , getLatestBlock , createBlock ,addBlock ,replaceBlockchain ,createNextBlock ,genesisBlock};
