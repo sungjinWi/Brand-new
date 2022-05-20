@@ -7,9 +7,10 @@
     hash : 블록 내부 데이터로 생성한 sha256 값 (블록의 유일성)
     previousHash : 이전 블록의 해쉬 (이전 블록 참조)
 */
+import _ from "lodash";
 import random from "random";
 import CryptoJS from "crypto-js"
-import { getCoinbaseTransaction, getTransactionPool, updateTransactionPool, GetUnspentTxOuts, processTransaction } from "./transaction.js";
+import { getCoinbaseTransaction, getTransactionPool, updateTransactionPool, processTransaction, addToTransactionPool } from "./transaction.js";
 import { getPublicKeyFromWallet } from "./wallet.js";
 
 const BLOCK_GENERATION_INTERVAL = 10; // 이 주기마다 블록이 생성되게 하는것이 우리의 목표 // SECOND
@@ -27,6 +28,17 @@ class Block {
     }
 }
 
+//UnspentTxOut []
+let unspentTxOuts = processTransaction(
+    getTransactionPool() /* Transaction[] */ ,
+    [] /* UnspentTxout[] */,
+    0 /* blockindex */
+); 
+
+const getUnspentTxOuts = () => {
+    return _.cloneDeep(unspentTxOuts)
+}
+_.difference
 
 const getBlocks = () => { // 외부에 노출할 수 있게
     return blocks;
@@ -47,12 +59,21 @@ const calculateHash = (index, data, timestamp, previousHash, difficulty, nonce) 
 
 // new Date().getTime() / 1000
 const createGenesisBlock = () => {
-    const genesisBlock = new Block(0, 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks',0, 0, 0, 1, 0);
+    const genesisBlock = new Block(0, 'The Times 03/Jan/2009 Chancellor on brink of second bailout for banks',0, 0, 0, 0, 0);
     
     genesisBlock.hash = calculateHash(genesisBlock.index, genesisBlock.data, genesisBlock.timestamp,
     genesisBlock.previousHash, genesisBlock.difficulty, genesisBlock.nonce);
+
+    genesisBlock.data = getCoinbaseTransaction(getPublicKeyFromWallet(), 1 );
+    // addToTransactionPool(genesisBlock.data);
+    unspentTxOuts = processTransaction([genesisBlock.data], [], 0)
     return genesisBlock;
 }
+
+const genesisBlock = createGenesisBlock();
+
+let blocks = [genesisBlock];
+
 
 const createBlock = (blockData) => {
     const previousBlock = blocks[blocks.length - 1];
@@ -262,13 +283,7 @@ const getDifficulty = () => {
     return latestBlock.difficulty;
 }
 
-const genesisBlock = createGenesisBlock();
-genesisBlock.data = getCoinbaseTransaction(getPublicKeyFromWallet(), genesisBlock.index );
-
-let blocks = [genesisBlock];
-console.log(blocks)
-// let blocks = [createGenesisBlock()];
 
 
 
-export { getBlocks , getLatestBlock , createBlock ,addBlock ,replaceBlockchain };
+export { getBlocks , getLatestBlock , createBlock ,addBlock ,replaceBlockchain, getUnspentTxOuts };

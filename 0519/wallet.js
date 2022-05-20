@@ -9,8 +9,6 @@ const createPrivateKey = () => {
     const keyPair = ec.genKeyPair();
     const privateKey = keyPair.getPrivate();
 
-    // console.log(privateKey);
-    // console.log(privateKey.toString(16));
 
     return privateKey.toString(16);
 }

@@ -117,10 +117,11 @@ const handleBlockchainResponse = (receivedBlockchain) => {
 const handleTransactionPoolResponse = (receivedTransactionPool) => {
     console.log("receivedTransactionPool : ", receivedTransactionPool);
 
-    receivedTransactionPool.forEach( (transaction) => {
+    JSON.parse(receivedTransactionPool).forEach( (transaction) => {
         // 중복검사 후 트랜잭션 풀에 추가
         addToTransactionPool(transaction);
         // 다시 전파
+        
     })
 }
 
@@ -177,4 +178,14 @@ const mineBlock = (blockData) => {
     }
 }
 
-export { initP2PServer ,connectionToPeer, broadcasting, responseLatestMessage, mineBlock};
+const broadcastingTransactionPool = () => {
+    broadcasting(responseTransactionPoolMessage())
+}
+
+export { initP2PServer ,
+    connectionToPeer,
+    broadcasting,
+    responseLatestMessage,
+    mineBlock ,
+    broadcastingTransactionPool
+};

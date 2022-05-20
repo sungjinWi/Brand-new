@@ -1,20 +1,19 @@
 import CryptoJS from "crypto-js"
 import _ from "lodash";
 import { getPublicKeyFromWallet, getPrivateKeyFromWallet } from "./wallet.js"
+import { broadcastingTransactionPool } from "./p2pServer.js"
+import { getUnspentTxOuts } from "./block.js";
 
 const COINBASE_AMOUNT = 50;
 
-let transactionPool = [];
+let transactionPool = [];/* genesisBlock.data */
 
 // 깊은 복사로 내보내기 위해 처리하는 함수
 const getTransactionPool = () => {
     return _.cloneDeep(transactionPool);
 }
 
-const GetUnspentTxOuts = () => {
-    return _.cloneDeep(unspentTxOuts)
-}
-_.difference
+
 
 class UnspentTxOut {
     constructor(txOutId, txOutIndex, address, amount) {
@@ -56,13 +55,6 @@ class Transaction {
 // 트랜잭션 자체가 변조되지않았다를 검증
 const getTransactionId = (transaction) => {
 
-    // txIns에 있는 내용들을 하나의 문자열로 만든다.
-    const txInsContent = transaction.txIns.map((txIn)=>{
-        (txIn.txOutId + txIn.txOutIndex)
-    }).reduce((a,b) => {
-        a + b, ""
-    })
-
     // txOuts에 있는 내용들을 하나의 문자열로 만든다.
     const txOutsContent = transaction.txOuts
     .map((txOut)=>txOut.address + txOut.amount)
@@ -70,7 +62,7 @@ const getTransactionId = (transaction) => {
 
 
     // 위의 두 내용을 다 합해서 hash처리한다.
-    return CryptoJS.SHA256(txInsContent + txOutsContent).toString();
+    return CryptoJS.SHA256(txOutsContent).toString();
 }
 
 // transaction signature
@@ -114,41 +106,37 @@ const sendTransaction = (address, amount) => {
     transactionPool.push(tx);
 
     // 3. 주변노드에 전파
-
+    broadcastingTransactionPool()
 
 
     return tx;
 } 
 
-const createTransaction = (amount, address) => {
-    // 1. 아직 처리되지 않았지만 (블록에 담기지 않음) 트랜잭션 풀에 올라가 있는 내용을 확인
-    const myAddress = getPublicKeyFromWallet();
-    const myUnspentTxOuts = unspentTxOuts.filter( uTxO => uTxO.address === myAddress);
 
-    const filteredUnspentTxOuts = filterTxPoolTxs(myUnspentTxOuts);
+const createTransaction = (address, amount) => {
 
-    // 2. 거래에 사용되지 않은 txOuts을 구성, 트랜잭션에 필요한 코인을 확인
-    // 넘기는 금액은 다시 나한테 전달
-    const { includeTxOuts, leftoverAmount } = findTxOutsForAmount(amount, filteredUnspentTxOuts);
 
-    // 3. 서명 전의 TxIns로 구성
-    const unsignedTxIns = includeTxOuts.map(createUnsignedTxIn); // 이렇게도 그냥 쓸 수 있다고?? 호출도 없이??? -> 할 수 있다
-    
+    // 미사용 TxOuts에서 사용할 내용들을 추출
+    const unspentTxOuts = getUnspentTxOuts()
+    const {includeTxOuts, leftoverAmount} = findTxOutsForAmount(amount, unspentTxOuts);
+    // 서명되지 않은 TxIns 구성
+    const unsignedTxIns = includeTxOuts.map(createUnsignedTxIn);
+    console.log("unsignedTxIns : ", unsignedTxIns)
 
-    // 4. 트랜잭션 구성
     const tx = new Transaction();
     tx.txIns = unsignedTxIns;
     tx.txOuts = createTxOuts(address, amount, leftoverAmount);
     tx.id = getTransactionId(tx);
 
-    tx.txIns = tx.txIns.map( (txIn)=>{
-        txIn.sign = signTxIn(tx, tx.txIn.txOutIndex, getPrivateKeyFromWallet());
-        return txIn;
-    })
+    // tx.txIns = tx.txIns.map( (txIn)=>{
+    //     txIn.sign = signTxIn(tx, tx.txIn.txOutIndex, getPrivateKeyFromWallet());
+    //     return txIn;
+    // })
 
     return tx;
 
 }
+
 
 const filterTxPoolTxs = (myUnspentTxOuts) => {
     // 트랜잭션 풀에서 트랜잭션 인풋 내용만 추출
@@ -192,7 +180,7 @@ const findTxOutsForAmount = (amount, filteredUnspentTxOuts) => {
 
     for (const unspentTxOut of filteredUnspentTxOuts) {
         includeTxOuts.push(unspentTxOut)
-        unspentTxOut.amount = currentAmount + unspentTxOut.amount;
+        currentAmount = currentAmount + unspentTxOut.amount;
         if (currentAmount >= amount) {
             const leftoverAmount = currentAmount - amount;
             return { includeTxOuts, leftoverAmount };
@@ -220,13 +208,12 @@ const createTxOuts = (address, amount, leftoverAmount) => {
         return [txOut];
     }
 }
-
 const addToTransactionPool = (transaction) => {
 
-    // 올바른 트랜잭션인지
-    if (!isValidateTransaction(transaction, unspentTxOuts)) {
-        throw Error("추가하려는 트랜잭션이 올바르지않다", transaction)
-    }
+    // // 올바른 트랜잭션인지
+    // if (!isValidateTransaction(transaction, unspentTxOuts)) {
+    //     throw Error("추가하려는 트랜잭션이 올바르지않다", transaction)
+    // }
 
 
     // 중복되는지
@@ -320,17 +307,13 @@ const isInTx = (txIn) => {
 }
 
 const processTransaction = (transactions, unspentTxOuts, blockIndex) => {
-    // 1. 예외처리 (트랜잭션 구조를 검증하는 과정)
-    if(isValidateBlockTransaction(transactions, unspentTxOuts, blockIndex)) {
-        console.log("invalid processTransaction!")
-        return null;
-    }
 
     // 2. 미사용 txOuts를 추출하는 과정
     //  2_1. 블록에 있는 데이터 (처리해야 할 트랜잭션 정보) 중에서 txIns로 소모된 txOuts(UnspentTxOut)를 구성
     const consumedTxOuts = transactions.map((tx) => tx.txIns)
     .reduce((a,b)=> a.concat(b), [])
     .map((txIn)=> new UnspentTxOut(txIn.txOutId, txIn.txOutIndex, '', 0));
+    console.log("processTransaction : ",consumedTxOuts)
 
     //  2_2. 새로 들어온 트랜잭션 정보에서 추출한 UnspentTxOut 생성
     const newUnspentTxOuts = transactions.map((tx)=> {
@@ -338,6 +321,7 @@ const processTransaction = (transactions, unspentTxOuts, blockIndex) => {
         })
         .reduce((a,b) => a.concat(b),[]);
     
+        console.log("processTransaction : ",newUnspentTxOuts)
 
     //  2_3. 기존 UnspentTxOut - 소모된 UnspentTxOut + newUnspentTxOut
     // 두 1차원 배열의 txOutId와 txOutIndex를 비교해서 같은 요소를 filter하는 코드를 만들자
@@ -349,6 +333,9 @@ const processTransaction = (transactions, unspentTxOuts, blockIndex) => {
     const resultUnspentTxOuts = (unspentTxOuts.filter((uTxO)=> !checkSameElement(consumedTxOuts,uTxO.txOutIndex,uTxO.txOutId)))
     .concat(newUnspentTxOuts)
 
+    console.log("processTransaction : ",resultUnspentTxOuts)
+
+
     unspentTxOuts = resultUnspentTxOuts;
     return resultUnspentTxOuts;
 }
@@ -357,11 +344,12 @@ const checkSameElement = (txOuts, txOutIndex, txOutId) => {
     return txOuts.find((txOut) => txOut.txOutId === txOutId && txOut.txOutIndex === txOutIndex)
 }
 
-//UnspentTxOut []
-let unspentTxOuts = processTransaction(
-    [transactions] /* Transaction[] */ ,
-    [] /* UnspentTxout[] */,
-    0 /* blockindex */
-    ); 
 
-export { getTransactionPool , addToTransactionPool , getCoinbaseTransaction , updateTransactionPool, GetUnspentTxOuts ,processTransaction };
+
+export { sendTransaction ,
+    addToTransactionPool ,
+    getCoinbaseTransaction ,
+    updateTransactionPool,
+    processTransaction ,
+    getTransactionPool
+};

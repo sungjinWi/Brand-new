@@ -3,9 +3,10 @@
 //require는 common js에서 다 불러 온다 import는 express만 따로 // import가 훨씬 compact함
 //import쓰려면 package.json에 추가
 import express from "express"; 
-import { getBlocks, createBlock} from "./block.js";
+import { getBlocks, createBlock , getUnspentTxOuts } from "./block.js";
 // 위의 함수들에서는 blocks가 선언된 코드가 없는데 변수를 잘 가져온다?????
 import { connectionToPeer, mineBlock } from "./p2pServer.js";
+import { sendTransaction , getTransactionPool  } from "./transaction.js"
 import cors from "cors"
 import { getPublicKeyFromWallet } from "./wallet.js";
 
@@ -49,6 +50,16 @@ const initHttpServer = (myHttpPort) => {
         const amount = req.body.amount;
         res.send(sendTransaction(address,amount));;
     })
+
+    app.get("/transactions", (req,res)=>{
+        res.send(getTransactionPool())
+    })
+
+    app.get("/unspentTxOuts", (req,res)=>{
+        res.send(getUnspentTxOuts())
+    })
+
+    app.get("/balance")
 
     app.listen(myHttpPort, ()=>  {
         console.log("listening httpServer... Port : ", myHttpPort)
