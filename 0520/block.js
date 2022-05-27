@@ -107,7 +107,7 @@ const addBlock = (newBlock,previousBlock) => {
         // 블록체인 자체가 바뀔때
 
         // 사용되지 않은 txOuts 셋팅
-        processTransaction(newBlock.data, GetUnspentTxOuts(), newBlock.index)
+        processTransaction(newBlock.data, getUnspentTxOuts(), newBlock.index)
 
 
         // 트랜잭션 풀 업데이트
