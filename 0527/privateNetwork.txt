@@ -1,0 +1,60 @@
+geth --datadir ./ethereum/data/ account new
+
+사설 chainId는 1000번 이상 쓰면 겹칠일은 없을거시다
+
+geth --datadir ./ethereum/data/ init ./genesis.json
+
+geth --identity 'PrivateNetwork' --datadir ./ethereum/data/ --port '30303' --http --http.addr 127.0.0.1 --http.port '8001' --http.corsdomain '*' --nodiscover --networkid 1001 --nat 'any' --http.api 'db, eth, net, web3, miner' --allow-insecure-unlock console
+//사설망 이름                                                               (linux에선 rpc)                                                         피어자동을 막아주는 옵션
+--allow-insecure-unlock 옵션이 있어야 unlock 가능
+===============================
+
+다른 터미널
+geth attach ipc://./pipe/geth.ipc
+
+eth.accounts
+eth.mining
+miner.threads=1 //4나 5정도면 일반 pc는 다 사용
+miner.start()
+miner.stop()
+eth.blockNumber
+eth.getBalance(eth.accounts[0])
+
+miner.setEtherbase(personal.listAccounts[0]) 
+//보상
+eth.coinbase
+
+================================================================
+
+
+
+var exampleAbi = abi
+var exampleHex = '0x bin'
+
+var exampleInterface = eth.contract(exampleAbi)
+
+unlock 하는 방법
+
+personal.unlockAccount(eth.accounts[0])
+
+var exampleTx = exampleInterface.new({constructor 인자,from:eth.accounts[0], data:exampleHex, gas: 1000000})
+
+var exampleTx = exampleInterface.new({from:eth.accounts[0],data:exampleHex, gas: 1000000})
+
+var exampleTxHash = exampleTx.transactionHash
+
+txpool.status
+
+miner.start()
+miner.stop()
+
+//일정량 채굴해야 나옴
+eth.getTransactionReceipt(exampleTxHash)
+
+var publishedExampleAddr = eth.getTransactionReceipt(exampleTxHash).contractAddress
+
+exampleTx 에서 address가 contract의 주소
+
+eth.defaultAccount=eth.coinbase;
+
+exampleInterface.at(publishedExampleAddr).get()
